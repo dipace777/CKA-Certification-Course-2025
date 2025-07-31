@@ -1,6 +1,8 @@
-# Day 48: Kubernetes DNS Explained with CoreDNS | CKA Course 2025
+# Day 48: Kubernetes DNS Explained | CKA Course 2025
 
 ## Video reference for Day 48 is the following:
+
+[![Watch the video](https://img.youtube.com/vi/9TosJ-z9x6Y/maxresdefault.jpg)](https://www.youtube.com/watch?v=9TosJ-z9x6Y&ab_channel=CloudWithVarJosh)
 
 ---
 ## ⭐ Support the Project  
@@ -583,6 +585,34 @@ The table below breaks down the purpose of each directive and plugin in the `Cor
 | `reload`                                                                  | Automatically reloads CoreDNS when the `Corefile` changes — no restart required.                                                                                                            |
 | `loadbalance`                                                             | Randomizes the order of upstream nameservers to distribute DNS query load evenly.                                                                                                           |
 
+---
+
+### **Pod DNS Resolution Modes in CoreDNS**
+
+Kubernetes CoreDNS offers multiple modes for resolving pod-level DNS names through the `pods` directive within the `kubernetes` plugin. Each mode offers different trade-offs between convenience and security:
+
+**`pods insecure`**
+Enables DNS entries for pod IPs (e.g., `10-244-1-23.default.pod.cluster.local`) without verifying ownership through the Kubernetes API.
+This mode is fast and convenient for development and testing, but it is **insecure**—allowing spoofed or stale records.
+Retained mainly for backward compatibility with `kube-dns` and **not recommended** for production use.
+
+**`pods verified`**
+Resolves pod DNS names only if the IP matches an active pod in the same namespace, as confirmed via the API server.
+Provides security and accuracy, ensuring only valid, live pods are resolvable.
+This mode is **recommended for production environments** requiring secure pod-level resolution.
+
+**`pods hostname`**
+Resolves DNS entries based solely on the pod’s `hostname` field.
+Ideal for environments with predictable hostnames and explicit hostname control—such as StatefulSets or manually configured hostnames.
+Useful when strict DNS behavior and naming consistency are desired.
+
+**Recommended Usage in Production:**
+
+* Use **`pods verified`** for secure, API-backed pod resolution.
+* Use **`pods hostname`** when you manage pod hostnames explicitly (e.g., with StatefulSets).
+* Avoid **`pods insecure`** due to its lack of validation and vulnerability to spoofing.
+
+
 
 ---
 
@@ -716,3 +746,5 @@ In this lecture, we covered the architecture of CoreDNS, its role in DNS resolut
 * [Debugging DNS Resolution – Kubernetes Documentation](https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/)
 * [Custom DNS Configuration – Kubernetes Documentation](https://kubernetes.io/docs/tasks/administer-cluster/dns-custom-nameservers/)
 * [CoreDNS Plugin: Kubernetes](https://coredns.io/plugins/kubernetes/)
+
+---
