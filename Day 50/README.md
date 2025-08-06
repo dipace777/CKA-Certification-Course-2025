@@ -827,20 +827,6 @@ Before testing, let’s connect the dots by walking through the end-to-end routi
 
 ---
 
-#### **Request Flow: How Traffic Reaches the Pods (with Target Type = `ip`)**
-
-* When an external user accesses a URL like `/iphone`, the DNS name resolves to an **AWS Application Load Balancer (ALB)** that was provisioned by the AWS Load Balancer Controller based on the Ingress resource.
-* The ALB evaluates listener rules generated from the Ingress manifest. Based on the path (`/iphone`, `/android`, or `/`), it forwards the request to a specific **Target Group**.
-* Each Target Group is associated with a Kubernetes Service, which acts as a logical bridge between the Ingress rule and the backend Pods. The Service’s **label selector** is crucial—it tells the Ingress Controller which Pods should be registered in the Target Group. While live traffic bypasses the Service and flows directly to Pod IPs (since target-type is `ip`), the Service remains essential for **target discovery, health check path annotations**, and **routing logic definition** within the Ingress resource.
-* Because the `target-type` is set to `ip`, the Target Group contains **Pod IPs** directly. Requests are forwarded from the ALB straight to the container port `5678` on each Pod, bypassing NodePorts and reducing unnecessary network hops.
-
-In summary:
-
-```
-User → AWS ALB → Target Group (based on Kubernetes Service) → Pod
-```
----
-
 ### **Test the Routing**
 
 Once the ALB is fully provisioned and all services report healthy targets, test routing via the ALB's DNS name.
@@ -893,10 +879,6 @@ Welcome to Cloud With VarJosh
 ```
 
 This route is matched last and acts as the catch-all fallback. If the request path doesn't match `/iphone` or `/android`, it routes to `desktop-svc`, which serves from the root (`/index.html`).
-
----
-
-> The catch-all route (`/`) is not a true "default backend" as per Kubernetes Ingress spec, but effectively behaves like one by being the last rule in the list. This is compatible with AWS Load Balancer Controller, which does not support `defaultBackend`.
 
 ---
 
