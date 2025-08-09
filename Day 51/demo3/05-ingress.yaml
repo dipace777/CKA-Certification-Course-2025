@@ -22,7 +22,7 @@ metadata:
     alb.ingress.kubernetes.io/success-codes: '200'
 
     ## SSL Settings
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-2:261358761470:certificate/6ab64476-8f23-4030-a291-4e8d6a3dcb35,arn:aws:acm:us-east-2:261358761470:certificate/c54d724c-0971-48f8-a901-ebc0e4e408af # We have supplied 2 certs; 1 for cwvj.click and another for *.cwvj.click
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-2:261358761470:certificate/7c872ed1-a1aa-413a-978f-2ed7d0bdb6a9 # We have supplied 2 certs; 1 for cwvj.click and another for *.cwvj.click
     alb.ingress.kubernetes.io/ssl-redirect: '443'
 spec:
   ingressClassName: alb

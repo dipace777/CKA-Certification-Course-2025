@@ -22,7 +22,7 @@ metadata:
     alb.ingress.kubernetes.io/success-codes: '200'
 
     ## SSL Settings
-    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-2:261358761470:certificate/6ab64476-8f23-4030-a291-4e8d6a3dcb35
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-2:261358761470:certificate/e6e6b107-b04f-4148-b60d-5d46b167e32c
     alb.ingress.kubernetes.io/ssl-redirect: '443'  
 
 spec:
