@@ -1,4 +1,4 @@
-# Day Day 51: MASTER Kubernetes Ingress | PART 3 | TLS & Subdomain Routing on EKS with AWS ALB | CKA 2025
+# Day 51: MASTER Kubernetes Ingress | PART 3 | TLS & Subdomain Routing on EKS with AWS ALB | CKA 2025
 
 ## Video reference for Day 51 is the following:
 
