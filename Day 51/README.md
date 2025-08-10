@@ -508,16 +508,6 @@ To clean up:
 
 ---
 
-### Conclusion
-
-Through this three-part journey, you progressively transformed a basic Kubernetes ingress setup into a secure, DNS-integrated, production-ready ingress gateway using native Kubernetes manifests and AWS-managed infrastructure. Starting with path-based routing via a public ALB, you advanced to HTTPS enforcement and custom domain configuration, and finally implemented subdomain-specific routing using host-based rules.
-
-This practical walkthrough showcases how **Amazon EKS**, coupled with the **AWS Load Balancer Controller**, enables powerful Layer 7 traffic management for containerized workloads. You also gained working knowledge of tools like **Route 53**, **AWS Certificate Manager**, and **ingressClass** configurations.
-
-These concepts form a foundational skill set for any cloud-native engineer working on modern production Kubernetes environments in AWS.
-
----
-
 ## Conclusion
 
 By the end of Part 3, you've mastered how to expose your Kubernetes applications securely and intelligently using **host-based (name-based) routing**, **HTTPS enforcement**, and **custom domains** on **Amazon EKS**.
