@@ -50,16 +50,16 @@ Before starting the Gateway API lectures (Day 52 & Day 53), it is highly recomme
 ### **Ingress Series**
 
 1. **Day 49:** MASTER Kubernetes Ingress | PART 1 | What, Why & Real-World Flow of Ingress
-   GitHub: [Day 49 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2049)
-   YouTube: [Watch Video](https://www.youtube.com/watch?v=yj-ZlKTYDUI&ab_channel=CloudWithVarJosh)
+   GitHub: [Day 49 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2049)  
+   YouTube: [Watch Video](https://www.youtube.com/watch?v=yj-ZlKTYDUI&ab_channel=CloudWithVarJosh)  
 
 2. **Day 50:** MASTER Kubernetes Ingress | PART 2 | Path-Based Routing on Amazon EKS with AWS ALB
-   GitHub: [Day 50 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2050)
-   YouTube: [Watch Video](https://www.youtube.com/watch?v=4d0dkj6Vc70&ab_channel=CloudWithVarJosh)
+   GitHub: [Day 50 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2050)  
+   YouTube: [Watch Video](https://www.youtube.com/watch?v=4d0dkj6Vc70&ab_channel=CloudWithVarJosh)  
 
 3. **Day 51:** MASTER Kubernetes Ingress | PART 3 | TLS & Subdomain Routing on EKS with AWS ALB
-   GitHub: [Day 51 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2051)
-   YouTube: [Watch Video](https://www.youtube.com/watch?v=ABqaWXSIFXc&ab_channel=CloudWithVarJosh)
+   GitHub: [Day 51 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2051)  
+   YouTube: [Watch Video](https://www.youtube.com/watch?v=ABqaWXSIFXc&ab_channel=CloudWithVarJosh)  
 
 > **Short on time?** At the very least, watch **Day 49 – Part 1** for the theory.
 
@@ -68,8 +68,8 @@ Before starting the Gateway API lectures (Day 52 & Day 53), it is highly recomme
 ### **Custom Resources**
 
 * **Day 39:** Custom Resources (CR) and Custom Resource Definitions (CRD) Explained with Demo
-  GitHub: [Day 39 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2039)
-  YouTube: [Watch Video](https://www.youtube.com/watch?v=y4e7nQzu_8E)
+  GitHub: [Day 39 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2039)  
+  YouTube: [Watch Video](https://www.youtube.com/watch?v=y4e7nQzu_8E)  
 
 ---
 
