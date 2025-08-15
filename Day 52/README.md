@@ -53,7 +53,7 @@ Before starting the Gateway API lectures (Day 52 & Day 53), it is highly recomme
    GitHub: [Day 49 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2049)  
    YouTube: [Watch Video](https://www.youtube.com/watch?v=yj-ZlKTYDUI&ab_channel=CloudWithVarJosh)  
 
-2. **Day 50:** MASTER Kubernetes Ingress | PART 2 | Path-Based Routing on Amazon EKS with AWS ALB. 
+2. **Day 50:** MASTER Kubernetes Ingress | PART 2 | Path-Based Routing on Amazon EKS with AWS ALB   
    GitHub: [Day 50 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2050)  
    YouTube: [Watch Video](https://www.youtube.com/watch?v=4d0dkj6Vc70&ab_channel=CloudWithVarJosh)  
 
