@@ -2,6 +2,7 @@
 
 ## Video reference for Day 52 is the following:
 
+[![Watch the video](https://img.youtube.com/vi/mkohNT5PCe8/maxresdefault.jpg)](https://www.youtube.com/watch?v=mkohNT5PCe8&ab_channel=CloudWithVarJosh)
 
 
 ---
@@ -191,7 +192,7 @@ A **Special Interest Group (SIG)** is a working group within the Kubernetes open
 
 ## Gateway API Resource Model and Role Alignment
 
-![Alt text](/images/52b.png)
+![Alt text](/images/52c.png)
 
 Gateway API introduces a resource model that separates **infrastructure** from **application routing**, making it easier to manage multi-tenant environments and delegate responsibilities across teams. These resources are intentionally modeled after the roles that typically exist in organizations running Kubernetes.
 
@@ -258,12 +259,11 @@ Gateway API goes beyond the HTTP/S-only limitation of Ingress by supporting **mu
 
 ---
 
-
 ## Gateway API Flow: Controller, GatewayClass, Gateway, and HTTPRoute
 
 This diagram illustrates how the **Gateway API** components interact in a Kubernetes environment using the **NGINX Gateway Fabric** as an example. It follows the sequence from the controller detecting configuration changes to routing traffic to the correct backend.
 
-![Alt text](/images/52c.png)
+![Alt text](/images/52b.png)
 
 ---
 
@@ -299,7 +299,21 @@ At this stage, depending on the controller implementation, the **data plane** is
 
 ---
 
-### 4. **HTTPRoute Defines Routing Rules**
+### 4. **Data Plane**
+
+This is where the **actual traffic forwarding** happens. Proxy pods (in-cluster) or external cloud load balancers (managed by providers) receive requests and forward them to Kubernetes Services and Pods.
+
+#### Control Plane vs Data Plane
+
+* **Control Plane** → Decides & reconciles the desired state. The controller (`nginx-gateway-controller`) watches resources like `GatewayClass`, `Gateway`, and `HTTPRoute` and configures the data plane.
+  *Example:* The NGINX Gateway controller deployment updates proxy pods when you apply a new route.
+
+* **Data Plane** → Forwards & processes traffic as per the rules programmed by the control plane.
+  *Example:* AWS ALB in cloud setups or NGINX/Envoy proxy pods in on-prem clusters.
+
+---
+
+### 5. **HTTPRoute Defines Routing Rules**
 
 An `HTTPRoute` specifies the routing rules for incoming traffic.
 It references the `Gateway` (via `parentRefs`) and defines:
@@ -319,11 +333,10 @@ When created, the controller binds these routes to the corresponding `Gateway` l
 
 ```
 Cloud-Managed: Client → Cloud Load Balancer → Kubernetes Service → Backend Pods
-In-Cluster: Client → LoadBalancer/NodePort Service → Proxy Pods → Backend Pods
+In-Cluster: Client → LoadBalancer/NodePort Service → Proxy Pods → Backend Service → Backend Pods
 ```
 
 ---
-
 
 ## **Gateway API Setup: Cloud-Managed vs In-Cluster Data Planes**
 
