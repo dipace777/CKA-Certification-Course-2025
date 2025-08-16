@@ -65,11 +65,15 @@ Before starting the Gateway API lectures (Day 52 & Day 53), it is highly recomme
 
 ---
 
-### **Custom Resources**
+### **Custom Resources & Operators**
 
 * **Day 39:** Custom Resources (CR) and Custom Resource Definitions (CRD) Explained with Demo  
   GitHub: [Day 39 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2039)  
   YouTube: [Watch Video](https://www.youtube.com/watch?v=y4e7nQzu_8E)  
+
+* **Day 40:** Kubernetes Operators Deep Dive with Hands-On Demo  
+  GitHub: [Day 40 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2040)  
+  YouTube: [Watch Video](https://www.youtube.com/watch?v=hxgmG1qYU2M&ab_channel=CloudWithVarJosh)  
 
 ---
 
@@ -94,7 +98,7 @@ Everything beyond simple host and path routing — such as **SSL redirects**, **
 
 ### 3. Controller-Specific Annotations Are Common Practice
 
-In our Ingress demos, we used the **AWS Load Balancer Controller (ALB Ingress Controller)**, which provides a large set of annotations to control ALB behavior. For example:
+In our Ingress demos, we used the **AWS Load Balancer Controller (an Ingress Controller)**, which provides a large set of annotations to control ALB behavior. For example:
 
 * SSL policy selection
 * Target group health check settings
@@ -145,6 +149,11 @@ Ingress natively supports only **HTTP(S) host-based and path-based routing**. It
 * Header-, query-, or method-based routing
 
 While these capabilities can be achieved with certain Ingress controllers through annotations, this again creates **controller lock-in** and reduces portability. If you move to another controller, you must verify whether it supports the same features — and if it does, you’ll likely need to change the annotation format to match.
+
+> **What is gRPC?**
+**gRPC** is a high-performance, open-source protocol for remote procedure calls (RPC).
+It enables services to communicate directly, even across different languages and platforms.
+It uses HTTP/2 under the hood for faster, more efficient data exchange.
 
 ---
 
@@ -249,6 +258,7 @@ Gateway API goes beyond the HTTP/S-only limitation of Ingress by supporting **mu
 
 ---
 
+
 ## Gateway API Flow: Controller, GatewayClass, Gateway, and HTTPRoute
 
 This diagram illustrates how the **Gateway API** components interact in a Kubernetes environment using the **NGINX Gateway Fabric** as an example. It follows the sequence from the controller detecting configuration changes to routing traffic to the correct backend.
@@ -283,7 +293,9 @@ When the controller detects a `Gateway` resource that uses its `GatewayClass`, i
 * Configures listeners (e.g., HTTP on port 80, HTTPS on port 443).
 * Prepares to forward traffic to backend services.
 
-In this stage, the controller ensures the gateway is ready to bind incoming traffic to the listeners defined in the `Gateway` spec.
+At this stage, depending on the controller implementation, the **data plane** is provisioned:
+– **Cloud-managed**: a provider-managed LB is created.
+– **In-cluster**: proxy pods (e.g., NGINX, Envoy) are deployed or configured.
 
 ---
 
@@ -299,37 +311,60 @@ When created, the controller binds these routes to the corresponding `Gateway` l
 
 ---
 
-
-## Gateway API Setup: Cloud-Managed vs In-Cluster Data Planes
-
-**Cloud-Managed (AWS / GCP / Azure Gateway Controllers)**
-The controller runs **inside the cluster** but provisions an **external, cloud-managed data plane** based on your `Gateway` and `Route` manifests. It creates listeners and routing rules on the cloud load balancer, which then forwards traffic to Kubernetes backends.
-
-* **AWS**: The AWS Gateway API Controller provisions **VPC Lattice** services as the data plane.
-* **GCP**: The GKE Gateway Controller provisions **Google Cloud Load Balancers** (external or internal).
-* **Azure**: The Azure Gateway Controller (for Containers) provisions **Azure Application Gateway** as the data plane.
-
-**In-Cluster (NGINX Gateway Fabric, Istio, Envoy Gateway, HAProxy)**
-The controller reconciles `GatewayClass`, `Gateway`, and `Route` objects and programs an **in-cluster proxy** running as pods or DaemonSets. This proxy is exposed via a Kubernetes `Service` (`LoadBalancer` in cloud; `NodePort` in on-prem/KIND).
+> The exact mechanics **depend on the controller implementation** — some lightweight/demo setups may skip a dedicated proxy tier, while production-grade controllers always program a defined data plane.
 
 ---
 
-### Key Differences
+### **One-Line Flows for Quick Recall**
 
-| Scenario      | Controller Location | Data Plane Location     | Example on AWS / GCP / Azure | Example in NGF Demo             |
-| ------------- | ------------------- | ----------------------- | ---------------------------- | ------------------------------- |
-| Cloud-Managed | In-cluster          | External cloud LB       | VPC Lattice / GCLB / App GW  | —                               |
-| In-Cluster    | In-cluster          | In-cluster proxy (pods) | —                            | NGINX Gateway Fabric (NodePort) |
+```
+Cloud-Managed: Client → Cloud Load Balancer → Kubernetes Service → Backend Pods
+In-Cluster: Client → LoadBalancer/NodePort Service → Proxy Pods → Backend Pods
+```
+
+---
+
+
+## **Gateway API Setup: Cloud-Managed vs In-Cluster Data Planes**
+
+**Cloud-Managed (AWS / GCP / Azure Gateway Controllers)**
+The controller runs **inside the cluster** but **only programs** an **external, cloud-managed data plane** based on your `Gateway` and `Route` manifests.
+It configures listeners, routing rules, TLS settings, and backend service mappings on the cloud load balancer. The cloud load balancer itself handles all client traffic and sends it directly to your Kubernetes Services — the controller is never in the traffic path.
+
+* **AWS** – AWS Gateway API Controller provisions **VPC Lattice services** (or ALB/NLB in other controller variants) as the data plane.
+* **GCP** – GKE Gateway Controller provisions **Google Cloud Load Balancers** (external or internal).
+* **Azure** – Azure Gateway Controller (for Containers) provisions **Azure Application Gateway** as the data plane.
+
+---
+
+**In-Cluster (NGINX Gateway Fabric, Istio, Envoy Gateway, HAProxy)**
+The controller reconciles `GatewayClass`, `Gateway`, and `Route` objects and writes configuration for an **in-cluster proxy** (e.g., NGINX, Envoy) running as pods or DaemonSets.
+These proxy pods form the data plane and handle the actual L4/L7 load balancing, TLS termination, and routing. They’re exposed via a Kubernetes `Service` — typically `LoadBalancer` in cloud environments or `NodePort` for on-prem/KIND clusters.
+⚠ In some lightweight/demo implementations (like certain KIND setups), the controller may bundle a minimal proxy or bypass a dedicated proxy tier, relying on kube-proxy/L4 forwarding. This is fine for demos, but not production-grade.
+
+---
+
+### **Key Differences**
+
+| Scenario          | Controller Location | Data Plane Location     | Example on AWS / GCP / Azure                  | Other In-Cluster / Cloud-Managed Examples                                                  |
+| ----------------- | ------------------- | ----------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **Cloud-Managed** | In-cluster          | External cloud LB       | AWS VPC Lattice / ALB, GCP GCLB, Azure App GW | AWS Load Balancer Controller (ALB/NLB), GCP Multi-Cluster Gateway, Azure Front Door        |
+| **In-Cluster**    | In-cluster          | In-cluster proxy (pods) | —                                             | NGINX Gateway Fabric, Envoy Gateway, Istio Ingress Gateway, HAProxy Ingress, Traefik Proxy |
+
 
 ---
 
 **Mental Model**
 
-* **Controller** = control plane (watches resources, writes configuration)
-* **Data plane** = where packets actually flow (cloud LB or in-cluster proxy)
-* Cloud setups use **external LBs** managed by the provider, while in-cluster setups rely on **proxy pods** to handle traffic directly.
+* **Controller** = Control plane (watches Gateway API resources, writes config, signals reloads).
+* **Data plane** = Where packets actually flow (cloud LB or in-cluster proxy pods).
+* In **cloud-managed setups**, the cloud provider’s LB is the data plane.
+* In **in-cluster setups**, the proxy pods are the data plane — the controller never sits on the hot path for traffic.
+* **Implementation detail matters**: some demos collapse control and data plane for simplicity.
 
 ---
+
+
 
 ## **Conclusion**
 
