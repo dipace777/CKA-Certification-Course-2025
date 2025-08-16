@@ -12,30 +12,26 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
 
 # Table of Contents
 
-* [Introduction](#introduction)
-* [Demo: Gateway API with NGINX Gateway Fabric](#demo-gateway-api-with-nginx-gateway-fabric)
-
-  * [Demo Introduction](#demo-introduction)
-  * [What We’re Going to Do in This Demo](#what-were-going-to-do-in-this-demo)
-  * [Flow](#flow)
-  * [Pre-requisites](#pre-requisites)
-  * [Step 1: Configure KIND Cluster](#step-1-configure-kind-cluster)
-
-    * [1.1 Delete any existing cluster](#11-delete-any-existing-cluster)
-    * [1.2 KIND cluster config (00-kind-clusteryaml)](#12-kind-cluster-config-00-kind-clusteryaml)
-    * [1.3 Create the cluster](#13-create-the-cluster)
-  * [Step 2: Install Gateway API CRDs](#step-2-install-gateway-api-crds)
-  * [Step 3: Install the NGINX Gateway Fabric Controller](#step-3-install-the-nginx-gateway-fabric-controller)
-  * [Step 4: Deploy Application Manifests](#step-4-deploy-application-manifests)
-
-    * [4.1 iPhone App (02-iphoneyaml)](#41-iphone-app-02-iphoneyaml)
-    * [4.2 Android App (03-androidyaml)](#42-android-app-03-androidyaml)
-    * [4.3 Desktop App (04-desktopyaml)](#43-desktop-app-04-desktopyaml)
-  * [Step 5: Create the Gateway](#step-5-create-the-gateway)
-  * [Step 6 – Create HTTPRoutes](#step-6--create-httproutes)
-  * [Step 7 – Check Connectivity](#step-7--check-connectivity)
-* [Conclusion](#conclusion)
-* [References](#references)
+* [Introduction](#introduction)  
+* [Demo: Gateway API with NGINX Gateway Fabric](#demo-gateway-api-with-nginx-gateway-fabric)  
+  * [Demo Introduction](#demo-introduction)  
+  * [What We’re Going to Do in This Demo](#what-were-going-to-do-in-this-demo)  
+  * [Pre-requisites](#pre-requisites)  
+  * [Step 1: Configure KIND Cluster](#step-1-configure-kind-cluster)  
+    * [1.1 Delete any existing cluster](#11-delete-any-existing-cluster)  
+    * [1.2 KIND cluster config (00-kind-clusteryaml)](#12-kind-cluster-config-00-kind-clusteryaml)  
+    * [1.3 Create the cluster](#13-create-the-cluster). 
+  * [Step 2: Install Gateway API CRDs](#step-2-install-gateway-api-crds). 
+  * [Step 3: Install the NGINX Gateway Fabric Controller](#step-3-install-the-nginx-gateway-fabric-controller). 
+  * [Step 4: Deploy Application Manifests](#step-4-deploy-application-manifests)  
+    * [4.1 iPhone App (02-iphoneyaml)](#41-iphone-app-02-iphoneyaml)  
+    * [4.2 Android App (03-androidyaml)](#42-android-app-03-androidyaml)  
+    * [4.3 Desktop App (04-desktopyaml)](#43-desktop-app-04-desktopyaml)  
+  * [Step 5: Create the Gateway](#step-5-create-the-gateway)  
+  * [Step 6 – Create HTTPRoutes](#step-6--create-httproutes)  
+  * [Step 7 – Check Connectivity](#step-7--check-connectivity)  
+* [Conclusion](#conclusion)  
+* [References](#references)  
 
 ---
 
