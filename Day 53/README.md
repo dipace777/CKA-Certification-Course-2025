@@ -1,9 +1,8 @@
-# Day 53: Kubernetes Gateway API Deep Dive | Part 2 | Demo with NGINX Gateway Fabric | CKA Course 2025
+# Day 53: Kubernetes Gateway API Demo | Part 2 | NGINX Gateway Fabric | CKA Course 2025
 
 ## Video reference for Day 53 is the following:
 
-
-
+[![Watch the video](https://img.youtube.com/vi/ojjeXUKRRjM/maxresdefault.jpg)](https://www.youtube.com/watch?v=ojjeXUKRRjM&ab_channel=CloudWithVarJosh)
 ---
 ## ⭐ Support the Project  
 If this **repository** helps you, give it a ⭐ to show your support and help others discover it! 
@@ -13,6 +12,7 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
 # Table of Contents
 
 * [Introduction](#introduction)  
+* [Pre-requisite](#pre-requisite) 
 * [Demo: Gateway API with NGINX Gateway Fabric](#demo-gateway-api-with-nginx-gateway-fabric)  
   * [Demo Introduction](#demo-introduction)  
   * [What We’re Going to Do in This Demo](#what-were-going-to-do-in-this-demo)  
@@ -43,6 +43,16 @@ In this session, we’ll put theory into action by deploying the **NGINX Gateway
 We’ll walk through installing NGF using Helm, exposing it via **NodePort** for direct access from our host machine, and then configuring **Gateways, Listeners, and HTTPRoutes** to route traffic across multiple backend applications. By the end of this demo, you’ll see how NGF acts as the data plane for Gateway API resources and how cleanly it handles multiple routes without relying on custom annotations or ingress-specific hacks.
 
 This demo is designed to be easy to replicate on your own system, giving you a strong foundation for experimenting with Gateway API in both local and cloud environments.
+
+---
+
+## **Pre-Requisite**
+Before watching this lecture, I highly recommend checking out **Day 52**, where we cover the theory and architecture behind the Gateway API:
+
+* YouTube Lecture: [Day 52 – Kubernetes Gateway API Deep Dive (Part 1)](https://www.youtube.com/watch?v=mkohNT5PCe8&t=2132s&ab_channel=CloudWithVarJosh)
+* GitHub Repository: [Day 52 – Kubernetes Gateway API Theory](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2052)
+
+This ensures you’ll have the right background before diving into the demo.
 
 ---
 
