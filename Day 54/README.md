@@ -11,31 +11,28 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
 
 ## Table of Contents
 
-* [Lecture Prerequisites](#lecture-prerequisites)
-
-  * [What to focus on (5-minute checklist)](#what-to-focus-on-5-minute-checklist)
+* [Lecture Prerequisites](#lecture-prerequisites)  
+  * [What to focus on (5-minute checklist)](#what-to-focus-on-5-minute-checklist)  
 * [Demo: Build a Multi-Node Kubernetes Cluster with kubeadm (v1.32)](#demo-build-a-multi-node-kubernetes-cluster-with-kubeadm-v132)
-  * [Demo Pre-requisites](#demo-pre-requisites)
-
-    * [1) Networking & Security Groups](#1-networking--security-groups)
-
-      * [control-plane-sg (inbound)](#control-plane-sg-inbound)
-      * [data-plane-sg (inbound)](#data-plane-sg-inbound)
-    * [2) SSH key pair](#2-ssh-key-pair)
-    * [3) Instances](#3-instances)
-    * [4) Hostnames (clarity only)](#4-hostnames-clarity-only)
-    * [5) How to follow the steps (read this first)](#5-how-to-follow-the-steps-read-this-first)
-  * [Step 1: Disable swap & set kernel networking $ALL NODES$](#step-1-disable-swap--set-kernel-networking-all-nodes)
-  * [Step 2: Install and configure containerd $ALL NODES$](#step-2-install-and-configure-containerd-all-nodes)
-  * [Step 3: Install kubeadm, kubelet, kubectl (v1.32) $ALL NODES$](#step-3-install-kubeadm-kubelet-kubectl-v132-all-nodes)
-  * [Step 4: Initialize the control plane $CONTROL PLANE ONLY$](#step-4-initialize-the-control-plane-control-plane-only)
-  * [Step 5: Install Calico CNI via Operator (defaults) $CONTROL PLANE ONLY$](#step-5-install-calico-cni-via-operator-defaults-control-plane-only)
-  * [Step 6: Join the workers $WORKER ONLY$](#step-6-join-the-workers-worker-only)
-  * [Step 7: Verify & quick demo $any node with kubeconfig$](#step-7-verify--quick-demo-any-node-with-kubeconfig)
-* [If something flaps (quick stabilizers)](#if-something-flaps-quick-stabilizers)
-* [Reset to a clean slate (lab-safe)](#reset-to-a-clean-slate-lab-safe)
-* [Conclusion](#conclusion)
-* [References](#references)
+  * [Demo Pre-requisites](#demo-pre-requisites)  
+    * [1) Networking & Security Groups](#1-networking--security-groups)  
+      * [control-plane-sg (inbound)](#control-plane-sg-inbound)  
+      * [data-plane-sg (inbound)](#data-plane-sg-inbound)  
+    * [2) SSH key pair](#2-ssh-key-pair)  
+    * [3) Instances](#3-instances)  
+    * [4) Hostnames (clarity only)](#4-hostnames-clarity-only)  
+    * [5) How to follow the steps (read this first)](#5-how-to-follow-the-steps-read-this-first)  
+  * [Step 1: Disable swap & set kernel networking $ALL NODES$](#step-1-disable-swap--set-kernel-networking-all-nodes)  
+  * [Step 2: Install and configure containerd $ALL NODES$](#step-2-install-and-configure-containerd-all-nodes)  
+  * [Step 3: Install kubeadm, kubelet, kubectl (v1.32) $ALL NODES$](#step-3-install-kubeadm-kubelet-kubectl-v132-all-nodes)  
+  * [Step 4: Initialize the control plane $CONTROL PLANE ONLY$](#step-4-initialize-the-control-plane-control-plane-only)  
+  * [Step 5: Install Calico CNI via Operator (defaults) $CONTROL PLANE ONLY$](#step-5-install-calico-cni-via-operator-defaults-control-plane-only)  
+  * [Step 6: Join the workers $WORKER ONLY$](#step-6-join-the-workers-worker-only)  
+  * [Step 7: Verify & quick demo $any node with kubeconfig$](#step-7-verify--quick-demo-any-node-with-kubeconfig)  
+* [If something flaps (quick stabilizers)](#if-something-flaps-quick-stabilizers)  
+* [Reset to a clean slate (lab-safe)](#reset-to-a-clean-slate-lab-safe)  
+* [Conclusion](#conclusion)  
+* [References](#references)  
 
 ---
 
