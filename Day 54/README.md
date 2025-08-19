@@ -38,20 +38,21 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
 
 ## Lecture Prerequisites
 
-Before this demo, do a quick refresher on Kubernetes basics from **Day 7**:
+**Day 7 — Kubernetes Architecture & Deployment Workflow**
+* [Day 7 Video](https://www.youtube.com/watch?v=-9Cslu8PTjU&ab_channel=CloudWithVarJosh)
+* [Day 7 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2007)
 
-* **Watch:** *Kubernetes Architecture (Day 7)* — concise walkthrough of control plane & node components
-  👉 [https://www.youtube.com/watch?v=-9Cslu8PTjU\&ab\_channel=CloudWithVarJosh](https://www.youtube.com/watch?v=-9Cslu8PTjU&ab_channel=CloudWithVarJosh)
-* **Skim:** Day 7 notes & examples (repo)
-  👉 [https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2007](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2007)
+**Day 25 — Core & Extensions: CNI, CSI, CRI, Add-Ons & Plugins**
+* [Day 25 Video](https://www.youtube.com/watch?v=AVovCH0dvyM&ab_channel=CloudWithVarJosh)
+* [Day 25 Notes](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2025)
 
-#### What to focus on (5-minute checklist)
+#### 5-Minute Checklist
 
-* Control plane pieces: **API server, etcd, controller manager, scheduler**
-* Node pieces: **kubelet, kube-proxy, container runtime**
-* Networking at a glance: **Pods, Services**, and why we need a **CNI** (Calico)
+* Control plane: **API server, etcd, controller manager, scheduler**
+* Nodes: **kubelet, kube-proxy, container runtime**
+* Networking: **Pods, Services**, and why a **CNI** (Calico) is needed
 
-If those terms ring a bell, you’re ready for Day 54.
+If those ring a bell, you’re ready for **Day 54**.
 
 ---
 
