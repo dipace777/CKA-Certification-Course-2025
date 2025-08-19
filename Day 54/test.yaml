@@ -1,0 +1,5 @@
+# Replace with your control plane node's private IP
+sudo kubeadm init \
+  --control-plane-endpoint=172.31.43.189:6443 \
+  --apiserver-advertise-address=172.31.43.189 \
+  --pod-network-cidr=192.168.0.0/16

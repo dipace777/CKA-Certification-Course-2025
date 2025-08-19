@@ -2,6 +2,7 @@
 
 ## Video reference for Day 54 is the following:
 
+[![Watch the video](https://img.youtube.com/vi/Dmx36Hx-suk/maxresdefault.jpg)](https://www.youtube.com/watch?v=Dmx36Hx-suk&ab_channel=CloudWithVarJosh)
 
 ---
 ## ⭐ Support the Project  
@@ -29,8 +30,7 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
   * [Step 5: Install Calico CNI via Operator (defaults) $CONTROL PLANE ONLY$](#step-5-install-calico-cni-via-operator-defaults-control-plane-only)  
   * [Step 6: Join the workers $WORKER ONLY$](#step-6-join-the-workers-worker-only)  
   * [Step 7: Verify & quick demo $any node with kubeconfig$](#step-7-verify--quick-demo-any-node-with-kubeconfig)  
-* [If something flaps (quick stabilizers)](#if-something-flaps-quick-stabilizers)  
-* [Reset to a clean slate (lab-safe)](#reset-to-a-clean-slate-lab-safe)  
+* [Post-install reboots & stabilization (strongly recommended)](#post-install-reboots--stabilization-strongly-recommended)   
 * [Conclusion](#conclusion)  
 * [References](#references)  
 
@@ -296,6 +296,19 @@ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 * **`--apiserver-advertise-address`** is the local IP the API server binds to.
 * **Pod CIDR** must match your CNI (we’ll use 192.168.0.0/16 with Calico).
 
+> **Note (for 1 vCPU control-plane VMs):**
+> kubeadm expects **≥ 2 vCPU** for the control plane. For demos on tiny VMs, you can bypass the preflight check:
+>
+> ```bash
+> sudo kubeadm init \
+>   --control-plane-endpoint=<CP_PRIVATE_IP>:6443 \
+>   --apiserver-advertise-address=<CP_PRIVATE_IP> \
+>   --pod-network-cidr=192.168.0.0/16 \
+>   --ignore-preflight-errors=NumCPU
+> ```
+>
+> *This only skips the check, startup may be slower and less stable. Use **2 vCPU** for the control plane when possible. Workers can be 1–2 vCPU.*
+
 ---
 
 ## Step 5: Install Calico CNI via **Operator** (defaults) \[CONTROL PLANE ONLY]
@@ -372,37 +385,54 @@ curl -I http://<worker-2-public-or-private-ip>:<nodeport>
 
 ---
 
-## If something flaps (quick stabilizers)
+## Post-install reboots & stabilization (strongly recommended)
 
-```bash
-# Align containerd with kubelet and refresh once
-sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
-sudo sed -i 's#sandbox_image = ".*"#sandbox_image = "registry.k8s.io/pause:3.9"#' /etc/containerd/config.toml
-sudo systemctl restart containerd && sudo systemctl restart kubelet
+1. **Control plane first**
 
-# Nudge kube-proxy once (harmless if already healthy)
-kubectl -n kube-system rollout restart ds/kube-proxy
-```
+   * After Step 4 (init + Calico) shows system pods **Running**, reboot the CP:
 
----
+     ```bash
+     sudo reboot
+     ```
+   * Wait **10–15 minutes** for components to settle, then verify:
 
-## Reset to a clean slate (lab-safe)
+     ```bash
+     # on the control plane
+     sudo systemctl status containerd kubelet --no-pager
+     kubectl get nodes
+     kubectl -n kube-system get pods
+     ```
 
-> **Order matters:** reset **workers first**, then the **control plane**.
+2. **Then workers**
 
-```bash
-# WORKERS
-sudo kubeadm reset -f
-sudo rm -rf /etc/cni/net.d /var/lib/cni /var/lib/kubelet/pki ~/.kube
-for i in cni0 vxlan.calico tunl0; do sudo ip link del "$i" 2>/dev/null || true; done
-sudo systemctl restart containerd
+   * Complete Steps 1–3 on each worker, run the **kubeadm join**, then reboot each worker:
 
-# CONTROL PLANE
-sudo kubeadm reset -f
-sudo rm -rf /etc/kubernetes /var/lib/etcd /etc/cni/net.d /var/lib/cni /var/lib/kubelet/pki ~/.kube
-for i in cni0 vxlan.calico tunl0; do sudo ip link del "$i" 2>/dev/null || true; done
-sudo systemctl restart containerd
-```
+     ```bash
+     sudo reboot
+     ```
+   * Give it **5–10 minutes**, then confirm:
+
+     ```bash
+     kubectl get nodes -o wide
+     kubectl -n calico-system get pods -o wide
+     ```
+
+> **Still seeing flaps?** Do a **clean-slate reset** (workers → control plane) and re-run the install steps in order.
+>
+> ```bash
+> # WORKERS
+> sudo kubeadm reset -f
+> sudo rm -rf /etc/cni/net.d /var/lib/cni /var/lib/kubelet/pki ~/.kube
+> for i in cni0 vxlan.calico tunl0; do sudo ip link del "$i" 2>/dev/null || true; done
+> sudo systemctl restart containerd
+>
+> # CONTROL PLANE
+> sudo kubeadm reset -f
+> sudo rm -rf /etc/kubernetes /var/lib/etcd /etc/cni/net.d /var/lib/cni /var/lib/kubelet/pki ~/.kube
+> for i in cni0 vxlan.calico tunl0; do sudo ip link del "$i" 2>/dev/null || true; done
+> sudo systemctl restart containerd
+> ```
+
 
 ---
 
@@ -414,12 +444,15 @@ You just built a clean, repeatable multi-node Kubernetes **v1.32** cluster with 
 
 ## References
 
-* Installing kubeadm (pkgs.k8s.io repo, version-pinned) — official guide: [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
-* Container runtimes — required kernel modules/sysctls and runtime guidance: [https://kubernetes.io/docs/setup/production-environment/container-runtimes/](https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
-* Configure kubelet ↔ runtime cgroup driver (systemd) — why `SystemdCgroup=true` matters: [https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/)
-* Change Kubernetes package repository (pin/minor selection) — using per-minor repos like v1.32: [https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/change-package-repository/](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/change-package-repository/)
-* Kubernetes Services & NodePort — what a Service is and how NodePort exposes it: [https://kubernetes.io/docs/concepts/services-networking/service/](https://kubernetes.io/docs/concepts/services-networking/service/)
-* `kubeadm reset` — what gets cleaned on control plane/worker nodes: [https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-reset/](https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-reset/)
-* Calico system/network requirements — ports & protocols: [https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements)
-* Calico overlay modes — overview of IP-in-IP vs VXLAN: [https://docs.tigera.io/calico/latest/networking/configuring/vxlan-ipip](https://docs.tigera.io/calico/latest/networking/configuring/vxlan-ipip)
-* Calico install (operator/manifest) — on-prem/self-managed flow: [https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/onpremises](https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/onpremises)
+
+* **Installing kubeadm (version-pinned via pkgs.k8s.io)** — [Kubernetes docs: Install kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/) *(kubernetes.io)*
+* **Container runtimes (kernel modules/sysctls)** — [Kubernetes docs: Container runtimes](https://kubernetes.io/docs/setup/production-environment/container-runtimes/) *(kubernetes.io)*
+* **Kubelet ↔ runtime cgroup driver (systemd)** — [Kubernetes docs: Configure cgroup driver](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/configure-cgroup-driver/) *(kubernetes.io)*
+* **Change Kubernetes package repository (pin a minor)** — [Kubernetes docs: Change package repository](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/change-package-repository/) *(kubernetes.io)*
+* **Kubernetes Services & NodePort** — [Kubernetes docs: Service](https://kubernetes.io/docs/concepts/services-networking/service/) *(kubernetes.io)*
+* **Kubernetes ports & protocols (APIs, components, CNIs, etc.)** — [Kubernetes docs: Ports and protocols](https://kubernetes.io/docs/reference/networking/ports-and-protocols/) *(kubernetes.io)*
+* **`kubeadm reset` (what gets cleaned up)** — [Kubernetes docs: kubeadm reset](https://kubernetes.io/docs/reference/setup-tools/kubeadm/kubeadm-reset/) *(kubernetes.io)*
+* **Calico system/network requirements (ports & protocols)** — [Calico docs: Kubernetes requirements](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements) *(docs.tigera.io)*
+* **Calico install (operator/manifest) on self-managed clusters** — [Calico docs: On-premises install](https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/onpremises) *(docs.tigera.io)*
+
+---
