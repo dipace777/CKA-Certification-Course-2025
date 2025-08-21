@@ -34,6 +34,7 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
     * [Step 1: Cordon, then drain](#step-1-cordon-then-drain-from-control-plane-or-any-admin-shell)  
     * [Step 2: Upgrade the worker](#step-2-upgrade-the-worker-on-the-worker-node)  
     * [Step 3: Uncordon and verify](#step-3--uncordon-and-verify-from-admin-shell)  
+* [Calico Post-Upgrade Troubleshooting](#calico-post-upgrade-troubleshooting)
 * [Draining with a PodDisruptionBudget (What the diagram shows)](#draining-with-a-poddisruptionbudget-what-the-diagram-shows)  
 * [Conclusion](#conclusion)  
 * [References](#references)  
@@ -65,23 +66,39 @@ Kubernetes upgrades are not optional — they are a critical part of maintaining
 
 ---
 
-
 ## Support Window & Real-World Practice
 
-* **Upstream support:** only **N / N-1 / N-2** minors get patches (\~1 year per branch).
-  *Example:* when **1.33** ships, **1.30** is out of upstream support.
-* **Implication:** if current is **1.33**, only **1.33 / 1.32 / 1.31** receive security/bug fixes—plan upgrades accordingly.
+* **Upstream window:** Only **N / N-1 / N-2** receive patches (≈12 months per minor). Plan upgrades so you don’t fall off support.
+  *Example:* when **1.33** is current, only **1.33 / 1.32 / 1.31** get fixes; **1.30** is out.
+
 * **Managed Kubernetes (FYI):**
 
   * **Amazon EKS:** \~**14 months** standard + **12 months** extended (paid) → up to **\~26 months** per minor.
-  * **Azure AKS / Google GKE:** generally **N-2**; timelines and auto-upgrade/LTS options vary—check the provider matrix.
-* **Note:** Cloud providers ship **their own Kubernetes distributions** (with vendor patches/add-ons). **Support comes from the cloud provider’s engineers**, not the upstream Kubernetes community. Open tickets with your provider for managed clusters.
+  * **Azure AKS / Google GKE:** typically keep you within **N-2**; exact timelines/LTS/auto-upgrade vary—check provider docs.
+
+* **Reminder:** Managed offerings are vendor-tuned; **support is via your cloud provider**, not upstream Kubernetes. Open tickets with the provider for managed clusters.
+
+---
+
+## Patch Management Guideline (N / N-1 / N-2)
+
+**Definitions:** **N** = current production minor (e.g., `1.33`); **N-1 / N-2** = previous supported minors (e.g., `1.32`, `1.31`).
+
+**Policy**
+
+* **N-1 & N-2:** run the **latest patch** for that minor (maximize security/bug fixes).
+* **N (Prod):** **pin to a known-good patch**; promote newer patches **after staging/canary soak**, so Prod may intentionally **lag** the absolute latest for a short validation window.
+
+**Example**
+
+* **Prod (N = 1.33):** **`1.33.3`** (vetted).
+* **N-1 / N-2:** **`1.32.latest`** and **`1.31.latest`**.
 
 > **Production Insight**
 >
-> * Teams often upgrade **every other minor (\~6–8 months)** with **monthly patches** in between—still within **N / N-1 / N-2**.
-> * Prod rarely jumps to **brand-new N**; even on N, it’s usually **not the day-zero latest patch** (wait for follow-ups).
-> * Exceptions: urgent CVEs, auto-upgrade channels, greenfield clusters.
+> * Many teams upgrade **every other minor (\~6–8 months)** with **monthly patches** in between—still within **N / N-1 / N-2**.
+> * Prod rarely jumps to a **brand-new N**; even on N, it’s usually **not the day-zero latest patch** (wait for follow-ups).
+> * **Exceptions:** urgent CVEs, auto-upgrade channels, greenfield clusters.
 > * If you spot **N at the very latest patch** in prod, tell me :-P
 
 ---
@@ -111,8 +128,15 @@ Use these guardrails to avoid compatibility issues during rolling upgrades:
 
   * Supported within **±1 minor** of the API server.
   * For admin laptops/CI images, staying on N or N+1 is practical; on nodes, match the node’s kubelet to avoid drift.
+  > Run multiple `kubectl` versions on one host without pain: keep the client **within ±1 minor** of each cluster (install **N, N-1, N+1** you use most).
+**Best:** use **asdf** to auto-switch versions per project.
+**Simple:** keep multiple binaries (e.g., `kubectl-1.31`, `kubectl-1.32`) with a symlink/aliases.
+**Zero-install:** run pinned images like `bitnami/kubectl:1.xx` via Docker/Podman.
+Name contexts with the minor (e.g., `prod-1.32`) and sanity-check with `kubectl version`.
+
 
 >**Safe rule of thumb:** Never run a component **newer** than the API server; converge all components to the **same minor** promptly.
+
 
 ---
 
@@ -121,6 +145,8 @@ Use these guardrails to avoid compatibility issues during rolling upgrades:
 * **Security & compliance:** CVEs and critical bugs are patched only on supported branches.
 * **Features & APIs:** New capabilities, GA promotions, and deprecations arrive in minors.
 * **Ecosystem compatibility:** CNIs, CSI drivers, ingress/controllers validate against currently supported minors.
+  > Sometimes your CNI/CSI/CRI (or other third party addons) ship new features that depend on newer Kubernetes APIs. If your cluster is on an older minor, those features can break, or the addon may fail to start, due to version skew or missing API fields.
+
 
 ---
 
@@ -355,7 +381,11 @@ kubectl get nodes
 # worker-1        Ready   <none>          ...   v1.32.8
 # worker-2        Ready   <none>          ...   v1.32.8
 ```
-\
+
+
+> **Recommendation:** After upgrading, **reboot** the control-plane node to force clean restarts (kubelet, containerd, networking) and surface any gaps early. In this lecture, we reboot after finishing the worker upgrades to keep the flow simple.
+
+
 **HA clusters (brief differences):**
 
 ```bash
@@ -405,6 +435,23 @@ kubectl cordon worker-1
 # Drain: evict existing pods, respecting PodDisruptionBudgets (DaemonSets ignored)
 kubectl drain worker-1 --ignore-daemonsets --delete-emptydir-data
 ```
+
+**Tip:** `kubectl drain` will cordon the node automatically before evicting the pod(s), but it’s safer to **cordon first, then drain**.
+Cordon stops new pods from landing while you:
+
+* review what’s still running on the node,
+* check/adjust PodDisruptionBudgets (PDBs),
+* let jobs/long-lived sessions finish,
+* and easily back out (`kubectl uncordon`) if you postpone maintenance.
+
+```bash
+kubectl cordon <node>   # stop new pods scheduling here
+kubectl get pods -A -o wide | grep <node>  # inspect impact
+kubectl drain <node> --ignore-daemonsets --delete-emptydir-data --grace-period=60 --timeout=10m
+# ...do maintenance...
+kubectl uncordon <node>
+```
+
 ---
 
 ### Step 2: Upgrade the worker (on the worker node)
@@ -431,7 +478,62 @@ kubectl uncordon worker-1
 kubectl get nodes -o wide
 ```
 
+>**Recommendation:**
+After any maintenance such as OS patching, vulnerability fixes, package or runtime updates, or Kubernetes component upgrades, perform a controlled **reboot** before you sign off. A reboot applies kernel and module changes, gives you a clean baseline, and confirms everything restarts together. It also prevents a pending reboot from an earlier task from interfering with your current change, which would make root cause unclear.
+
 **Repeat Steps 1–3 for `worker-2` (and others) one by one.**
+
+---
+
+## Calico Post-Upgrade Troubleshooting
+
+**Symptom:** `calico-node` Pods show **Running (0/1)** and readiness fails. You’ll see messages like **“Error querying BIRD”** or **“BGP not established …”** even though the cluster uses **VXLAN** (so BGP isn’t required).
+
+**Root cause:** With the Tigera **operator** install, **BGP defaults to enabled** unless you explicitly set it. In a VXLAN setup, that leads to BIRD/BGP readiness failures. After disabling BGP, some nodes may still report **Felix not ready** if they can’t reach **Typha** (TCP **5473**).
+
+## Fix (VXLAN clusters)
+
+**1) Check whether BGP is enabled**
+
+```bash
+# Show the BGP setting on the Installation CR (empty or "Enabled" = on)
+kubectl get installation.operator.tigera.io default \
+  -o jsonpath='{.spec.calicoNetwork.bgp}{"\n"}'
+```
+
+**2) Disable BGP on the Installation CR**
+
+```bash
+# Turn off BGP for VXLAN-only networking
+kubectl patch installation.operator.tigera.io default --type=merge \
+  -p '{"spec":{"calicoNetwork":{"bgp":"Disabled"}}}'
+```
+
+**3) Restart calico-node to pick up the change**
+
+```bash
+# Rollout restart the DaemonSet and wait for readiness
+kubectl -n calico-system rollout restart ds/calico-node
+kubectl -n calico-system rollout status ds/calico-node
+```
+
+**4) If you still see readiness errors mentioning Felix / Typha**
+
+```bash
+# Inspect Typha endpoints (Pods usually run in calico-system)
+kubectl -n calico-system get deploy,svc,endpoints -l k8s-app=calico-typha
+
+# Check calico-node logs for Typha connection errors (port 5473/TCP)
+kubectl -n calico-system logs ds/calico-node -c calico-node | grep -i typha
+```
+
+Open **TCP 5473** **between nodes and the Typha endpoints** (where the `calico-typha` Pods run). In cloud environments, that means updating your **Security Groups/NSGs** to allow node↔Typha traffic on **5473/TCP**.
+Also ensure **UDP 4789** is allowed for **VXLAN** (you already did this), and note that you **do not** need **TCP 179** (BGP) when BGP is disabled.
+
+> If you actually intend to use BGP (no overlay / routed fabric), **keep BGP enabled** and open **TCP 179** between peers (and configure node-to-node mesh or route reflectors). For VXLAN-only clusters, keep BGP **Disabled** to avoid BIRD errors.
+
+**Reference:** Tigera docs mention disabling BGP for operator-based VXLAN installs:
+[https://docs.tigera.io/calico/latest/getting-started/kubernetes/windows-calico/operator#operator-installation](https://docs.tigera.io/calico/latest/getting-started/kubernetes/windows-calico/operator#operator-installation)
 
 ---
 
@@ -449,7 +551,17 @@ We’re draining **worker-1** while a **PDB** protects the *red-deploy* app. The
 
 > Heads-up: a PDB counts **Ready** pods (terminating/NotReady don’t count), so simply “scheduling” a replacement isn’t enough—it must become **Ready** to restore allowance.
 
+**Important Note**
+**PodPriority** affects **scheduling and preemption** (who gets placed, and who gets preempted under pressure). It does **not** change how **`kubectl drain`** evicts pods.
+**Drain** uses the **Eviction API** and **honors PDBs**; priority won’t “protect” a Pod from a voluntary eviction during maintenance.
+**Nuance:** Under **node resource pressure** (involuntary evictions by the kubelet), **lower-priority** pods are evicted first—but that’s different from `drain`.
+
+**What to use for maintenance safety:** define **PodDisruptionBudgets** (minAvailable / maxUnavailable) and cordon→drain. If some Pods must never drop below N replicas, enforce that with **PDBs**, not priority.
+
+
 We’ll dive deeper into **PDBs**—their rules, caveats, and patterns—**sometime later**.
+
+
 
 ---
 
