@@ -2,6 +2,9 @@
 
 ## Video reference for Day 55 is the following:
 
+[![Watch the video](https://img.youtube.com/vi/y_PHAkH_bLU/maxresdefault.jpg)](https://www.youtube.com/watch?v=y_PHAkH_bLU&ab_channel=CloudWithVarJosh)
+
+
 ---
 ## ⭐ Support the Project  
 If this **repository** helps you, give it a ⭐ to show your support and help others discover it! 
@@ -535,6 +538,8 @@ Also ensure **UDP 4789** is allowed for **VXLAN** (you already did this), and no
 **Reference:** Tigera docs mention disabling BGP for operator-based VXLAN installs:
 [https://docs.tigera.io/calico/latest/getting-started/kubernetes/windows-calico/operator#operator-installation](https://docs.tigera.io/calico/latest/getting-started/kubernetes/windows-calico/operator#operator-installation)
 
+https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/config-options#use-vxlan
+
 ---
 
 ## Draining with a PodDisruptionBudget (What the diagram shows)
@@ -580,6 +585,7 @@ Upgrading Kubernetes is **not merely a technical exercise but an operational nec
 * Kubernetes Documentation — [Upgrading kubeadm Clusters](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/)
 * Kubernetes Documentation — [Change Kubernetes Package Repository](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/change-package-repository/)
 * Tigera Calico — [Kubernetes Compatibility Matrix](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements#kubernetes-requirements)
+* Tigera Calico - [Calico Troubleshooting](https://docs.tigera.io/calico/latest/getting-started/kubernetes/windows-calico/operator?utm_source=chatgpt.com#operator-installation)
 * containerd — [Kubernetes Support Compatibility](https://containerd.io/releases/#kubernetes-support)
 * AWS EKS — [EKS Kubernetes Version Support](https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html)
 * Azure AKS — [AKS Kubernetes Version Support](https://learn.microsoft.com/en-us/azure/aks/supported-kubernetes-versions)
