@@ -29,7 +29,8 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
   * [Step 4: Initialize the control plane $CONTROL PLANE ONLY$](#step-4-initialize-the-control-plane-control-plane-only)  
   * [Step 5: Install Calico CNI via Operator (defaults) $CONTROL PLANE ONLY$](#step-5-install-calico-cni-via-operator-defaults-control-plane-only)  
   * [Step 6: Join the workers $WORKER ONLY$](#step-6-join-the-workers-worker-only)  
-  * [Step 7: Verify & quick demo $any node with kubeconfig$](#step-7-verify--quick-demo-any-node-with-kubeconfig)  
+  * [Step 7: Verify & quick demo $any node with kubeconfig$](#step-7-verify--quick-demo-any-node-with-kubeconfig) 
+* [Calico Troubleshooting **IMPORTANT**](#calico-troubleshooting)   
 * [Post-install reboots & stabilization (strongly recommended)](#post-install-reboots--stabilization-strongly-recommended)   
 * [Conclusion](#conclusion)  
 * [References](#references)  
@@ -65,7 +66,12 @@ In this demo we’ll stand up a small, real cluster on VMs: one control-plane no
 
 ## Demo Pre-requisites
 
-### 1) Networking & Security Groups
+### 1) Networking & Security Groups (updated for Calico **Typha**)
+
+> **Why this change?** In the Day 54 video we didn’t open **TCP 5473**. With operator-based Calico, the **Typha** component is commonly enabled and (by default) runs with **hostNetwork**, so each `calico-node` (Felix) connects to Typha on **5473/TCP**. Without this, `calico-node` can sit in **Running (0/1)** with Typha connection timeouts.
+
+**Note:** For full context and step-by-step fixes, see **[Calico Troubleshooting](#calico-troubleshooting)** at the end of this guide.
+
 
 ![Alt text](/images/54a.png)
 
@@ -73,25 +79,32 @@ Create two SGs: **control-plane-sg** and **data-plane-sg** (same VPC). Allow **a
 
 #### control-plane-sg (inbound)
 
-| Purpose        | Protocol / Port | Source            | When                                        |
-| -------------- | --------------- | ----------------- | ------------------------------------------- |
-| SSH            | TCP 22          | Your IP           | Always                                      |
-| Kubernetes API | TCP 6443        | **data-plane-sg** | Always                                      |
-| VXLAN overlay  | **UDP 4789**    | **data-plane-sg** | Recommended (Calico defaults run on CP too) |
+| Purpose          | Protocol / Port | Source            | When                                        |
+| ---------------- | --------------- | ----------------- | ------------------------------------------- |
+| SSH              | TCP 22          | Your IP           | Always                                      |
+| Kubernetes API   | TCP 6443        | **data-plane-sg** | Always                                      |
+| **Calico Typha** | **TCP 5473**    | **data-plane-sg** | If Typha Pods can land on CP nodes          |
+| VXLAN overlay    | **UDP 4789**    | **data-plane-sg** | Recommended (Calico defaults run on CP too) |
 
-> If you will **never** run pods on the control plane (and pin Calico components away from it), you can omit **UDP 4789** here. For most demos, keep it.
+
+
+> **Note (self-managed clusters):** By default the `calico-node` **DaemonSet tolerates the control-plane taint and runs on control-plane nodes**. Therefore, keep **UDP 4789 (VXLAN)** and **TCP 5473 (Typha)** open on the control-plane SG.
+> You can omit these **only if you explicitly keep Calico off control-plane nodes** (e.g., label workers and set a `nodeSelector`/remove CP tolerations on `calico-node`) **and** ensure Typha runs only on workers.
+
 
 ---
 
 #### data-plane-sg (inbound)
 
-| Purpose         | Protocol / Port | Source               | When                                              |
-| --------------- | --------------- | -------------------- | ------------------------------------------------- |
-| SSH             | TCP 22          | Your IP              | Always                                            |
-| Kubelet API     | TCP 10250       | **control-plane-sg** | Always                                            |
-| VXLAN overlay   | **UDP 4789**    | **data-plane-sg**    | Always (worker ↔ worker)                          |
-| VXLAN overlay   | **UDP 4789**    | **control-plane-sg** | Always (CP ↔ worker)                              |
-| NodePort (demo) | TCP 30000–32767 | Your IP              | Optional (only for testing NodePort from outside) |
+| Purpose          | Protocol / Port | Source               | When                                            |
+| ---------------- | --------------- | -------------------- | ----------------------------------------------- |
+| SSH              | TCP 22          | Your IP              | Always                                          |
+| Kubelet API      | TCP 10250       | **control-plane-sg** | Always                                          |
+| VXLAN overlay    | **UDP 4789**    | **data-plane-sg**    | Always (worker ↔ worker)                        |
+| VXLAN overlay    | **UDP 4789**    | **control-plane-sg** | Always (CP ↔ worker)                            |
+| **Calico Typha** | **TCP 5473**    | **data-plane-sg**    | If Typha Pods can land on workers (node ↔ node) |
+| **Calico Typha** | **TCP 5473**    | **control-plane-sg** | If CP nodes must reach Typha on workers         |
+| NodePort (demo)  | TCP 30000–32767 | Your IP              | Optional (only for testing NodePort externally) |
 
 ---
 
@@ -258,7 +271,6 @@ kubectl version
 * **kubeadm** bootstraps the cluster; **kubelet** runs pods; **kubectl** is the CLI.
 * Holding versions keeps your demo stable.
 
-> *Note:* `kubectl` on workers is optional—useful for troubleshooting. In this demo we install it everywhere.
 
 ### Bash completion (optional, helpful)
 
@@ -270,6 +282,24 @@ echo 'alias k=kubectl' >> ~/.bashrc
 echo 'complete -F __start_kubectl k' >> ~/.bashrc
 source ~/.bashrc
 ```
+
+> **kubectl on workers (kubeconfig):** We didn’t configure a kubeconfig on worker nodes. If you want to run `kubectl` from a worker, create `~/.kube/config` there.
+>
+> **Quick (lab) method — copy admin kubeconfig**
+>
+> ```bash
+> # On control-plane
+> sudo cp /etc/kubernetes/admin.conf /tmp/kubeconfig
+> sudo chown $USER:$USER /tmp/kubeconfig
+> scp /tmp/kubeconfig ubuntu@worker-1:~/.kube/config
+>
+> # On worker-1
+> mkdir -p ~/.kube
+> chmod 600 ~/.kube/config
+> kubectl get nodes   # should work now
+> ```
+>
+> *(This grants cluster-admin on that worker; fine for demos, not for prod.)*
 
 ---
 
@@ -326,6 +356,7 @@ metadata:
   name: default                           # Must be named 'default' (singleton)
 spec:
   calicoNetwork:                          # Calico networking settings
+    bgp: Disabled                         # Added later. Refer "Calico Troubleshooting" section of this lecture
     ipPools:
     - cidr: 192.168.0.0/16                # Pod CIDR (matches kubeadm --pod-network-cidr)
       natOutgoing: Enabled                # SNAT pod→external traffic at node egress
@@ -382,6 +413,64 @@ kubectl get svc web -o jsonpath='{.spec.ports[0].nodePort}'; echo
 curl -I http://<worker-1-public-or-private-ip>:<nodeport>
 curl -I http://<worker-2-public-or-private-ip>:<nodeport>
 ```
+
+---
+
+## Calico Troubleshooting
+
+**Why these Calico fixes exist?**
+While upgrading the cluster in **Day 55**, we noticed some `calico-node` Pods weren’t becoming **Ready**. We applied a few Calico/network tweaks to resolve this. The steps below document those changes. For full context, watch the **Day 55** lecture where we perform the Kubernetes upgrade with **kubeadm**.
+
+
+**Symptom:** `calico-node` Pods show **Running (0/1)** and readiness fails. You’ll see messages like **“Error querying BIRD”** or **“BGP not established …”** even though the cluster uses **VXLAN** (so BGP isn’t required).
+
+**Root cause:** With the Tigera **operator** install, **BGP defaults to enabled** unless you explicitly set it. In a VXLAN setup, that leads to BIRD/BGP readiness failures. After disabling BGP, some nodes may still report **Felix not ready** if they can’t reach **Typha** (TCP **5473**).
+
+## Fix (VXLAN clusters)
+
+**1) Check whether BGP is enabled**
+
+```bash
+# Show the BGP setting on the Installation CR (empty or "Enabled" = on)
+kubectl get installation.operator.tigera.io default \
+  -o jsonpath='{.spec.calicoNetwork.bgp}{"\n"}'
+```
+
+**2) Disable BGP on the Installation CR**
+
+```bash
+# Turn off BGP for VXLAN-only networking
+kubectl patch installation.operator.tigera.io default --type=merge \
+  -p '{"spec":{"calicoNetwork":{"bgp":"Disabled"}}}'
+```
+
+**3) Restart calico-node to pick up the change**
+
+```bash
+# Rollout restart the DaemonSet and wait for readiness
+kubectl -n calico-system rollout restart ds/calico-node
+kubectl -n calico-system rollout status ds/calico-node
+```
+
+**4) If you still see readiness errors mentioning Felix / Typha**
+
+```bash
+# Inspect Typha endpoints (Pods usually run in calico-system)
+kubectl -n calico-system get deploy,svc,endpoints -l k8s-app=calico-typha
+
+# Check calico-node logs for Typha connection errors (port 5473/TCP)
+kubectl -n calico-system logs ds/calico-node -c calico-node | grep -i typha
+```
+
+Open **TCP 5473** **between nodes and the Typha endpoints** (where the `calico-typha` Pods run). In cloud environments, that means updating your **Security Groups/NSGs** to allow node↔Typha traffic on **5473/TCP**.
+Also ensure **UDP 4789** is allowed for **VXLAN** (you already did this), and note that you **do not** need **TCP 179** (BGP) when BGP is disabled.
+
+> If you actually intend to use BGP (no overlay / routed fabric), **keep BGP enabled** and open **TCP 179** between peers (and configure node-to-node mesh or route reflectors). For VXLAN-only clusters, keep BGP **Disabled** to avoid BIRD errors.
+
+**Reference:** Tigera docs mention disabling BGP for operator-based VXLAN installs:
+[https://docs.tigera.io/calico/latest/getting-started/kubernetes/windows-calico/operator#operator-installation](https://docs.tigera.io/calico/latest/getting-started/kubernetes/windows-calico/operator#operator-installation)
+
+https://docs.tigera.io/calico/latest/getting-started/kubernetes/self-managed-onprem/config-options#use-vxlan
 
 ---
 
