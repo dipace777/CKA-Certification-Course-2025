@@ -17,7 +17,6 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
   - [2. Application Observability (APM – Application Performance Monitoring)](#2-application-observability-apm--application-performance-monitoring)  
 - [Observability in AWS with Native Services](#observability-in-aws-with-native-services)  
 - [3. The 3 Pillars of Observability](#3-the-3-pillars-of-observability)  
-
 - [Metrics Server — Quick Install (Lab)](#metrics-server--quick-install-lab)  
   - [Step 1 — Install](#step-1--install)  
   - [Step 2 — Edit the Deployment](#step-2--edit-the-deployment)  
