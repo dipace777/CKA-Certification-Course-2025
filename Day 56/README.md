@@ -8,6 +8,34 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
 
 ---
 
+## Table of Contents
+
+- [Introduction](#introduction)  
+- [1. What is Observability?](#1-what-is-observability)  
+- [2. Two Perspectives of Observability (DevOps View)](#2-two-perspectives-of-observability-devops-view)  
+  - [1. Infrastructure Observability](#1-infrastructure-observability)  
+  - [2. Application Observability (APM – Application Performance Monitoring)](#2-application-observability-apm--application-performance-monitoring)  
+- [Observability in AWS with Native Services](#observability-in-aws-with-native-services)  
+- [3. The 3 Pillars of Observability](#3-the-3-pillars-of-observability)  
+
+- [Metrics Server — Quick Install (Lab)](#metrics-server--quick-install-lab)  
+  - [Step 1 — Install](#step-1--install)  
+  - [Step 2 — Edit the Deployment](#step-2--edit-the-deployment)  
+  - [Step 3 — Verify](#step-3--verify)  
+- [If you used Day 54 (kubeadm + Calico Operator)](#if-you-used-day-54-kubeadm--calico-operator)  
+- [Out-of-the-Box Monitoring and Logging in Kubernetes](#out-of-the-box-monitoring-and-logging-in-kubernetes)  
+  - [Kubernetes Monitoring](#kubernetes-monitoring)  
+    - [What do we want to monitor in a cluster?](#what-do-we-want-to-monitor-in-a-cluster)  
+    - [Metrics Server Recap](#metrics-server-recap)  
+    - [Types of Metrics in Kubernetes (for Autoscaling)](#types-of-metrics-in-kubernetes-for-autoscaling)  
+    - [Beyond Metrics Server (add-ons & native signals)](#beyond-metrics-server-add-ons--native-signals)  
+  - [Kubernetes Logging](#kubernetes-logging)  
+- [Conclusion](#conclusion)  
+- [References](#references)  
+
+
+---
+
 ## Introduction
 
 This module builds a ground-up view of Kubernetes observability: what it is, why it matters for dynamic, ephemeral workloads, and how DevOps/SREs must read a system from two complementary angles—**infrastructure** (nodes, pods, cluster health) and **application/APM** (latency, errors, user experience). You’ll see how the three pillars—**metrics, logs, traces**—map to both perspectives; which native signals Kubernetes exposes (Metrics API, component `/metrics`, logging paths); where add-ons like **metrics-server** and **kube-state-metrics** fit; and how enterprises often unify infra + app telemetry with platforms such as Datadog/Dynatrace or with **AWS-native** services (CloudWatch, **AMP**, **AMG**, X-Ray, RUM, Synthetics). The goal is a practical mental model you can apply in any cluster: know which signals exist, how to collect them, and how to turn them into action.
@@ -113,32 +141,7 @@ Instead, APM is the **practice of applying all 3 pillars — metrics, logs, and 
 
 ---
 
-
-## **Observability in AWS with Native Services**
-
-I wanted to give you a glimpse of how you can achieve both **infrastructure-level** and **application-level observability** in AWS using the native tools provided by AWS. CloudWatch is the central service here, but AWS also offers managed integrations like **Amazon Managed Service for Prometheus (AMP)** and **Amazon Managed Grafana (AMG)** for teams that prefer Kubernetes-native workflows.
-
-**Infrastructure Observability** can be achieved with:
-
-* **Metrics:** CloudWatch Metrics, Container Insights, AMP
-* **Logs:** CloudWatch Logs, Logs Insights, Container Insights, AWS CloudTrail (for audit/security events)
-* **Traces:** VPC Flow Logs, network-level telemetry, AWS Distro for OpenTelemetry (ADOT)
-
-**Application Observability (APM)** can be achieved with:
-
-* **Metrics:** CloudWatch Metrics, Application Signals (preview), AMP
-* **Logs:** CloudWatch Logs (from Lambda, ECS/EKS, and application runtimes)
-* **Traces:** AWS X-Ray, CloudWatch RUM (Real User Monitoring), CloudWatch Synthetics, CloudWatch Application Signals, ADOT
-
-⚡ Together, these services give you the ability to collect **metrics, logs, and traces** across both infrastructure and applications — enabling full observability without leaving the AWS ecosystem.
-
----
-
-Perfect—here’s a cleaned-up, beginner-friendly version that **keeps everything you had**, just tightened and formatted.
-
----
-
-# Metrics Server — Quick Install (Lab)
+## Metrics Server — Quick Install (Lab)
 
 ### Step 1 — Install
 
@@ -349,13 +352,13 @@ Local (node) logs are **ephemeral** and **scattered**. In production, ship logs 
 
 ---
 
-# Conclusion
+## Conclusion
 
 Observability isn’t a tool—it’s a way of running systems. In Kubernetes, start with the **native signals**: container logs (stdout/stderr), Metrics API via **metrics-server**, and component `/metrics` endpoints. Add **kube-state-metrics** for object health, and choose a storage/visualization stack (Prometheus + Grafana, or a managed/SaaS platform). Keep the two lenses in view: **infra health** (capacity, saturation, failures) and **application health** (latency, errors, traces). For production, centralize logs and metrics, enforce RBAC for scraping control-plane endpoints, and integrate tracing (OpenTelemetry) so you can tie symptoms back to causes. With this foundation, you can scale, troubleshoot, and automate confidently.
 
 ---
 
-# References
+## References
 
 * [Metrics Server official GitHub repository](https://github.com/kubernetes-sigs/metrics-server)
 * [Kube-State-Metrics official GitHub repository](https://github.com/kubernetes/kube-state-metrics)
