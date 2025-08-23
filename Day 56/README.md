@@ -242,13 +242,33 @@ Switching to **Always** tunnels that traffic over `vxlan.calico`, restoring host
 
 #### **Metrics Server Recap**
 
-![Alt text](/images/56b.png)
-
 * **Purpose:** Collects CPU and memory usage from each kubelet (via embedded cAdvisor).
 * **Autoscaling role:** Provides the **resource metrics** that power Kubernetes autoscalers. Without it, HPA and VPA cannot make scaling decisions.
 * **Use cases:** Required for **Horizontal Pod Autoscaler (HPA)**, **Vertical Pod Autoscaler (VPA)**, and `kubectl top`.
 * **Limitation:** It is **in-memory only** — metrics are **not stored long-term**. Once queried, they are gone.
 * **Why important:** Despite limitations, it’s almost always installed because **autoscaling depends on it**.
+
+---
+
+### Metrics Server architecture (what happens on `kubectl top`)
+
+![Alt text](/images/56b.png)
+
+* **You run** `kubectl top nodes/pods`. The client calls the **Aggregated API** on the kube-apiserver at `/apis/metrics.k8s.io/v1beta1/...`.
+* The **API Aggregation Layer** **proxies** that request to the **metrics-server** Service.
+* **metrics-server** returns the latest **NodeMetrics/PodMetrics** it keeps in memory. It populates these by **scraping each node’s kubelet** over HTTPS (**10250**) using the kubelet **Summary API** (`/stats/summary`).
+* On every node, **kubelet** has **cAdvisor built in**, which gathers **container and node stats** (CPU, memory, network, filesystem) that feed the Summary API.
+
+### What you get
+
+* **Scope:** current CPU & memory for **pods** and **nodes** (no historical storage).
+* **Consumers:** `kubectl top`, **HPA/VPA** (resource metrics via `metrics.k8s.io`).
+
+### Key notes / gotchas
+
+* **Not a full monitoring stack:** no long-term storage, alerting, or dashboards—pair with Prometheus/Grafana (or a SaaS).
+* **Connectivity:** metrics-server must reach kubelet on **10250**; in labs you might use `--kubelet-insecure-tls` (avoid in prod).
+* **If `top` fails:** check the `v1beta1.metrics.k8s.io` **APIService** status, metrics-server logs, and node reachability to **10250**.
 
 ---
 
