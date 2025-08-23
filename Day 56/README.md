@@ -1,6 +1,9 @@
-# Day 56: Kubernetes Observability (Monitoring & Logging) | CKA Course 2025
+# Day 56: Kubernetes Monitoring & Logging Explained | CKA Course 2025
 
 ## Video reference for Day 56 is the following:
+
+[![Watch the video](https://img.youtube.com/vi/EASFfeAywNw/maxresdefault.jpg)](https://www.youtube.com/watch?v=EASFfeAywNw&ab_channel=CloudWithVarJosh)
+
 
 ---
 ## ⭐ Support the Project  
@@ -50,6 +53,8 @@ This module builds a ground-up view of Kubernetes observability: what it is, why
 ---
 
 ### **2. Two Perspectives of Observability (DevOps View)**
+
+![Alt text](/images/56a.png)
 
 As a DevOps/SRE engineer, you must look at observability from **two complementary angles**:
 
@@ -118,6 +123,9 @@ I wanted to give you a glimpse of how you can achieve both **infrastructure-leve
 
 ### **3. The 3 Pillars of Observability**
 
+![Alt text](/images/56a.png)
+
+
 * **Metrics**
 
   * *Infra:* Node CPU, memory, pod restarts, disk I/O, network bandwidth.
@@ -141,6 +149,7 @@ Instead, APM is the **practice of applying all 3 pillars — metrics, logs, and 
 ---
 
 ## Metrics Server — Quick Install (Lab)
+
 
 ### Step 1 — Install
 
@@ -215,6 +224,8 @@ Switching to **Always** tunnels that traffic over `vxlan.calico`, restoring host
 
 ### **Kubernetes Monitoring**
 
+![Alt text](/images/56c.png)
+
 * Kubernetes by itself does **not ship with a full-fledged monitoring solution**.
 * In our earlier lectures, we installed **Metrics Server** to collect resource usage metrics. Only after this, commands like `kubectl top` started working.
 
@@ -230,6 +241,8 @@ Switching to **Always** tunnels that traffic over `vxlan.calico`, restoring host
 ---
 
 #### **Metrics Server Recap**
+
+![Alt text](/images/56b.png)
 
 * **Purpose:** Collects CPU and memory usage from each kubelet (via embedded cAdvisor).
 * **Autoscaling role:** Provides the **resource metrics** that power Kubernetes autoscalers. Without it, HPA and VPA cannot make scaling decisions.
@@ -264,6 +277,8 @@ Switching to **Always** tunnels that traffic over `vxlan.calico`, restoring host
 
 
 ### Kubernetes Logging
+
+![Alt text](/images/56d.png)
 
 #### 0) What runs **as services** vs **as pods**
 
