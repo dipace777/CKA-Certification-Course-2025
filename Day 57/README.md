@@ -37,12 +37,17 @@ This guide is a fast, exam-friendly playbook for **troubleshooting Kubernetes co
 
 ### Prerequisites for this lecture
 
-* **Day 7: Kubernetes Architecture**
+* **Day 7 — Kubernetes Architecture**
 
   * [Watch on YouTube](https://www.youtube.com/watch?v=-9Cslu8PTjU&ab_channel=CloudWithVarJosh)
   * [View GitHub repo](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2007)
 
-* **TLS in Kubernetes: Masterclass**
+* **Day 15 — Manual Scheduling & Static Pods**
+
+  * [Watch on YouTube](https://www.youtube.com/watch?v=moZNbHD5Lxg&ab_channel=CloudWithVarJosh)
+  * [View GitHub repo](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2015)
+
+* **TLS in Kubernetes — Masterclass**
 
   * [Watch on YouTube](https://www.youtube.com/watch?v=J2Rx2fEJftQ&list=PLmPit9IIdzwQzlveiZU1bhR6PaDGKwshI&index=1&t=3371s&pp=gAQBiAQB)
   * [View GitHub repo](https://github.com/CloudWithVarJosh/TLS-In-Kubernetes-Masterclass)
