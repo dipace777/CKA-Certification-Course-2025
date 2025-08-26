@@ -2,7 +2,7 @@
 
 ## Video reference for Day 57 is the following:
 
-
+[![Watch the video](https://img.youtube.com/vi/-jpnd2uiJlU/maxresdefault.jpg)](https://www.youtube.com/watch?v=-jpnd2uiJlU&ab_channel=CloudWithVarJosh)
 
 ---
 ## ⭐ Support the Project  
@@ -24,6 +24,7 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
 * [3) Pods stay **Pending** — scheduler unavailable *or* no feasible node](#3-pods-stay-pending--scheduler-unavailable-or-no-feasible-node)
 * [4) Controller-Manager down → controllers inactive (no replicas, no GC)](#4-controller-manager-down--controllers-inactive-no-replicas-no-gc)
 * [5) Certificates expired (very common exam task)](#5-certificates-expired-very-common-exam-task)
+  * [After cert renewal: controller-manager & scheduler NotReady](#after-cert-renewal-controller-manager--scheduler-notready)  
 * [Conclusion](#conclusion)
 * [References](#references) &#x20;
 
@@ -480,7 +481,7 @@ sudo kubeadm certs check-expiration                       # confirm fresh NotAft
 ```bash
 # Restore correct time (enable exactly one time service)
 sudo date -s 'NOW'                                        # snap back to current time
-sudo systemctl start systemd-timesyncd 2>/dev/null || true# start systemd-timesyncd if used
+sudo systemctl start systemd-timesyncd 2>/dev/null || true # start systemd-timesyncd if used
 sudo systemctl start chronyd 2>/dev/null || true          # or start chrony if that’s your NTP agent
 
 # Re-issue certs with correct time (only needed if you renewed while clock was future)
@@ -497,6 +498,94 @@ sudo chown $(id -u):$(id -g) ~/.kube/config               # fix ownership for cu
 kubectl get nodes                                         # Ready again
 sudo kubeadm certs check-expiration                       # dates look sane (no future NotBefore)
 ```
+---
+
+## After cert renewal: controller-manager & scheduler NotReady
+
+### Why this happens
+
+1. **Time jump + reissued certs**
+   When you renew certs while the clock is wrong (or flip time back), the controllers may fail to authenticate (NotBefore/NotAfter mismatch) until you **re-renew** with correct time and regenerate kubeconfigs. That part you already fixed.
+
+2. **Stale containers in containerd after rapid restarts**
+   The controller static pods get restarted many times during cert rotation. Occasionally **containerd leaves a dead container record** that still “owns” the name. Kubelet then can’t create the new container and you see:
+
+   ```
+   Error: failed to reserve container name "...": name "..._kube-system_..." is reserved for "<old-container-id>"
+   ```
+
+   This is a runtime bookkeeping issue, not an image or manifest bug.
+
+---
+
+### Fixing controller-manager
+
+```bash
+# List all controller-manager containers (running/exited)
+sudo crictl ps -a | grep -i kube-controller-manager
+
+# Force-remove any stuck/old container IDs you see
+sudo crictl rm -f <CONTAINER_ID_1> <CONTAINER_ID_2>
+
+# (Optional) if a pod sandbox is also stuck, remove it too:
+sudo crictl pods | grep -i kube-controller-manager
+sudo crictl stopp <POD_SANDBOX_ID>; sudo crictl rmp <POD_SANDBOX_ID>
+
+# Nudge kubelet to resync static pods
+sudo systemctl restart kubelet
+```
+
+**Verify:**
+
+```bash
+kubectl -n kube-system get pods -l component=kube-controller-manager
+kubectl -n kube-system logs pod/<controller-manager-pod> --tail=50
+kubectl -n kube-system get lease | grep controller-manager   # leader election healthy
+```
+
+---
+
+### Fixing scheduler
+
+Same pattern:
+
+```bash
+sudo crictl ps -a | grep -i kube-scheduler
+sudo crictl rm -f <CONTAINER_IDs>
+sudo crictl pods | grep -i kube-scheduler && \
+  sudo crictl stopp <POD_SANDBOX_ID>; sudo crictl rmp <POD_SANDBOX_ID>
+sudo systemctl restart kubelet
+```
+
+**Verify:**
+
+```bash
+kubectl -n kube-system get pods -l component=kube-scheduler
+kubectl -n kube-system logs pod/<kube-scheduler-pod> --tail=50
+kubectl -n kube-system get lease | grep scheduler
+```
+
+---
+
+### Also double-check (common after cert work)
+
+```bash
+# Ensure kubeconfigs point to fresh certs
+sudo kubeadm init phase kubeconfig all
+
+# Confirm cert dates & that API auth works now
+sudo kubeadm certs check-expiration
+kubectl get nodes
+```
+
+---
+
+### TL;DR
+
+* The “**name is reserved for <ID>**” error = **stale containerd state** after many rapid restarts.
+* **crictl rm -f** the old containers (and sandbox if needed), then **restart kubelet**.
+* Ensure you **re-renewed certs with the correct system time** and regenerated the controller/scheduler kubeconfigs.
+
 ---
 
 ## Conclusion
