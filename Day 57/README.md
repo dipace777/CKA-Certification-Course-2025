@@ -14,6 +14,7 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
 
 * [Introduction](#introduction)
 * [Control-Plane Basics (kubeadm clusters)](#control-plane-basics-kubeadm-clusters)
+* [Pre-Requisites](#prerequisites-for-this-lecture)
 * [kubeconfig & contexts (quick refresher)](#kubeconfig--contexts-quick-refresher)
 * [Control-Plane Troubleshooting Scenarios (exam-style)](#control-plane-troubleshooting-scenarios-exam-style)
 * [1) API server unreachable / `kubectl` times out](#1-api-server-unreachable--kubectl-times-out)
@@ -31,6 +32,20 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
 ## Introduction
 
 This guide is a fast, exam-friendly playbook for **troubleshooting Kubernetes control-plane issues on kubeadm clusters**. It explains why control-plane components run as **static pods** (and how their **mirror pods** appear in `kubectl`), then walks you through high-signal triage for the most common failure modes: **API server unreachable (6443)**, **etcd unhealthy (2379/2380)**, **scheduler not placing pods**, **controller-manager not reconciling**, and **expired certificates**. Each scenario pairs crisp symptom checks (`ss`, `crictl`, logs) with minimal, reversible fixes (correcting flags in `/etc/kubernetes/manifests/`, rotating certs with `kubeadm`, restoring time sync). It’s written for **CKA candidates, SREs, and cluster admins** who need to diagnose quickly and change only what’s necessary.
+
+---
+
+### Prerequisites for this lecture
+
+* **Day 7: Kubernetes Architecture**
+
+  * [Watch on YouTube](https://www.youtube.com/watch?v=-9Cslu8PTjU&ab_channel=CloudWithVarJosh)
+  * [View GitHub repo](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2007)
+
+* **TLS in Kubernetes: Masterclass**
+
+  * [Watch on YouTube](https://www.youtube.com/watch?v=J2Rx2fEJftQ&list=PLmPit9IIdzwQzlveiZU1bhR6PaDGKwshI&index=1&t=3371s&pp=gAQBiAQB)
+  * [View GitHub repo](https://github.com/CloudWithVarJosh/TLS-In-Kubernetes-Masterclass)
 
 ---
 
