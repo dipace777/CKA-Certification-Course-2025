@@ -41,7 +41,7 @@ Day 58 is your **data-plane troubleshooting sprint**. Here we focus on the compo
   [Watch on YouTube](https://www.youtube.com/watch?v=-9Cslu8PTjU&ab_channel=CloudWithVarJosh)  
   [View GitHub repo](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2007)  
 
-* **Day 22 — Pod Termination, Restart Policies, Image Pull Policy, Lifecycle & Common Errors**. 
+* **Day 22 — Pod Termination, Restart Policies, Image Pull Policy, Lifecycle & Common Errors**  
   [Watch on YouTube](https://www.youtube.com/watch?v=miZl-7QI3Pw&ab_channel=CloudWithVarJosh)  
   [View GitHub repo](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2022)  
 
