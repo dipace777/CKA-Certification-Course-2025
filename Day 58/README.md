@@ -16,8 +16,6 @@ If this **repository** helps you, give it a ⭐ to show your support and help ot
 * [Prerequisites for this lecture](#prerequisites-for-this-lecture)  
   * [Note for viewers: Data-plane & prerequisites](#note-for-viewers-data-plane--prerequisites)  
 * [Quick refresher: the data-plane pieces](#quick-refresher-the-data-plane-pieces)  
-* [90-Second Triage (run first)](#90-second-triage-run-first)  
-* [Tooling you’ll use a lot](#tooling-youll-use-a-lot)  
 * [Read This First: How to Use the Scenarios](#read-this-first-how-to-use-the-scenarios)  
   * [1) Node NotReady / kubelet not registered](#1-node-notready--kubelet-not-registered)  
   * [2) Pods stuck ContainerCreating / CNI not initialized](#2-pods-stuck-containercreating--cni-not-initialized)  
@@ -39,19 +37,19 @@ Day 58 is your **data-plane troubleshooting sprint**. Here we focus on the compo
 ---
 ### Prerequisites for this lecture
 
-* **Day 7 — Kubernetes Architecture**
+* **Day 7 — Kubernetes Architecture**  
   [Watch on YouTube](https://www.youtube.com/watch?v=-9Cslu8PTjU&ab_channel=CloudWithVarJosh)  
   [View GitHub repo](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2007)  
 
-* **Day 22 — Pod Termination, Restart Policies, Image Pull Policy, Lifecycle & Common Errors**
+* **Day 22 — Pod Termination, Restart Policies, Image Pull Policy, Lifecycle & Common Errors**. 
   [Watch on YouTube](https://www.youtube.com/watch?v=miZl-7QI3Pw&ab_channel=CloudWithVarJosh)  
   [View GitHub repo](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2022)  
 
-* **Day 48 — Kubernetes DNS Explained**
+* **Day 48 — Kubernetes DNS Explained**  
   [Watch on YouTube](https://www.youtube.com/watch?v=9TosJ-z9x6Y&ab_channel=CloudWithVarJosh)  
   [View GitHub repo](https://github.com/CloudWithVarJosh/CKA-Certification-Course-2025/tree/main/Day%2048)  
 
-* **TLS in Kubernetes — Masterclass**
+* **TLS in Kubernetes — Masterclass**  
   [Watch on YouTube](https://www.youtube.com/watch?v=J2Rx2fEJftQ&list=PLmPit9IIdzwQzlveiZU1bhR6PaDGKwshI&index=1&t=3371s&pp=gAQBiAQB)  
   [View GitHub repo](https://github.com/CloudWithVarJosh/TLS-In-Kubernetes-Masterclass)  
 
@@ -105,63 +103,6 @@ The **data plane** is where your workloads actually run (kubelet, runtime, CNI, 
 * If controller/node driver is unhealthy → **PVC Pending** or mount errors.
 * Defaults matter (a default SC avoids PVCs hanging).
 * Think: “Do PVCs bind, and do Pods mount successfully?”
-
----
-
-## 90-Second Triage (run first)
-
-```bash
-# Cluster health
-kubectl get nodes -o wide
-kubectl get pods -A -o wide
-kubectl get events -A --sort-by=.lastTimestamp | tail -30
-
-# Node signals (when you suspect a node)
-# (on the node)   sudo systemctl status kubelet
-# (on the node)   sudo journalctl -u kubelet -b -o cat | tail -n 80
-
-# Quick debug shell for net/DNS checks
-kubectl run nstest --image=busybox:1.36 -it --rm --restart=Never -- sh
-# inside pod: nslookup kubernetes.default ; wget -qO- http://<svc>:<port>
-```
-
----
-
-## Tooling you’ll use a lot
-
-**Kubelet & runtime**
-
-```bash
-sudo systemctl status kubelet
-sudo journalctl -u kubelet -b -o cat | tail -n 80
-sudo systemctl status containerd
-crictl ps ; crictl images ; crictl info
-```
-
-**Networking**
-
-```bash
-kubectl -n kube-system get ds,pods | egrep -i 'calico|cilium|flannel|weave|kube-proxy'
-kubectl -n kube-system logs -l k8s-app=kube-proxy --tail=100
-ls -l /etc/cni/net.d/
-ip a
-```
-
-**DNS**
-
-```bash
-kubectl -n kube-system get pods -l k8s-app=kube-dns -o wide
-kubectl -n kube-system logs deploy/coredns --tail=80
-# from a pod: nslookup kubernetes.default
-```
-
-**Storage (CSI)**
-
-```bash
-kubectl get pvc,pv,sc
-kubectl describe pvc <name>
-kubectl -n kube-system get pods | grep -i csi
-```
 
 ---
 
