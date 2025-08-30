@@ -2,6 +2,7 @@
 
 ## Video reference for Day 58 is the following:
 
+[![Watch the video](https://img.youtube.com/vi/cBw0I7u2oVk/maxresdefault.jpg)](https://www.youtube.com/watch?v=cBw0I7u2oVk&ab_channel=CloudWithVarJosh)
 
 
 ---
