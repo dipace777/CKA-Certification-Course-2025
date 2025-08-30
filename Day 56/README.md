@@ -404,6 +404,8 @@ Observability isn’t a tool—it’s a way of running systems. In Kubernetes, s
 * [Amazon Managed Grafana service documentation](https://docs.aws.amazon.com/grafana/latest/userguide/what-is-Amazon-Managed-Grafana.html)
 * [OpenTelemetry official docs for instrumentation](https://opentelemetry.io/docs/)
 
+---
+
 
 
 
