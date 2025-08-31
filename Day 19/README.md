@@ -200,25 +200,37 @@ We briefly discussed the Metrics Server in **Day 7** when covering **Kubernetes 
 
 ---
 
-## **How Kubernetes Collects Metrics**  
+
+## **How Kubernetes Collects Metrics**
 
 ![Alt text](/images/19b.png)
 
-To understand how **kubectl top nodes** retrieves resource metrics, let's break down the process:  
+To understand how **`kubectl top nodes`** (and **`kubectl top pods`**) retrieves resource metrics, let's break down the process:
 
-1. **cAdvisor Collects Metrics**  
-   - The **cAdvisor** (Container Advisor) component, running inside the kubelet, collects CPU, memory, filesystem, and network usage metrics from nodes and pods.  
-   - cAdvisor exposes these metrics via a **REST API**.  
+1. **cAdvisor Collects Metrics (inside kubelet)**
 
-2. **Kubelet Gathers and Exposes Metrics**  
-   - The **kubelet** on each node queries cAdvisor and exposes the collected metrics via its own API.  
+   * **cAdvisor** is built into the **kubelet** and helps it collect CPU, memory, filesystem, and network usage from nodes and pods.
+   * You don’t run cAdvisor separately; kubelet leverages it (and runtime/CRI data) to gather container and node stats.
 
-3. **Metrics Server Aggregates Data from Kubelet**  
-   - The **Metrics Server** fetches data from the kubelet's API, which in turn gathers data from cAdvisor.  
-   - This enables cluster-wide **resource usage monitoring** of nodes, pods, and containers.  
+2. **Kubelet Gathers and Exposes Metrics**
 
-4. **API Server Serves the Metrics**  
-   - When we run `kubectl top nodes`, the **kubectl client requests the API Server** to fetch the latest resource usage from the **Metrics Server**.  
+   * Each **kubelet** aggregates these stats and **exposes resource metrics over HTTPS (port 10250)**.
+   * It provides multiple endpoints; historically **`/stats/summary`** (Summary API), and in newer setups **`/metrics/resource`** (Prometheus exposition for resource usage).
+
+3. **Metrics Server Scrapes the Kubelet (pull model)**
+
+   * The **Metrics Server** periodically **scrapes** each node’s kubelet; it does **not** receive pushed metrics.
+   * **Since metrics-server v0.6.x, it queries the kubelet’s `**/metrics/resource**` endpoint (not `/stats/summary`).**
+   * Older metrics-server versions used the **Summary API** (`/stats/summary`).
+   * Metrics Server keeps recent metrics in-memory and serves them via the aggregated API.
+
+4. **API Aggregation: `kubectl top` via `metrics.k8s.io`**
+
+   * When you run `kubectl top`, the client calls the **Aggregated API** on the **kube-apiserver** at **`apis/metrics.k8s.io/`**.
+   * The **API Aggregation Layer** forwards the request to **Metrics Server**, which returns the latest scraped metrics for nodes/pods.
+
+> 📌 **Version Note:** Beginning with **metrics-server v0.6.x**, resource data is fetched from the kubelet at **`/metrics/resource`**. Earlier releases queried **`/stats/summary`**.
+ 
 
 ---
 
